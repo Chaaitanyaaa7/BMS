@@ -6,3 +6,5 @@
 
 # ⛔ Ignore node_modules (Installed dependencies)
 node_modules/
+.DS_Store
+src/.DS_Store
