@@ -1,0 +1,8 @@
+# ⛔ Ignore environment files (Secrets, API keys)
+.env
+.env.local
+.env.development
+.env.production
+
+# ⛔ Ignore node_modules (Installed dependencies)
+node_modules/
