@@ -5,7 +5,7 @@ const BookReviewSchema = new mongoose.Schema({
     user: String,
     rating: Number,
     review: String,
-    review_date: Date,
+    review_date: { type: Date, default: Date.now }
 }, {
     collection: 'book_reviews'
 });

@@ -31,7 +31,6 @@ const resolvers = {
                 if (filter?.name) whereCondition.name = { [Op.iLike]: `%${filter.name}%` };
                 if (filter?.born_date)  whereCondition.born_date = { [Op.between]: [`${filter.born_date} 00:00:00`, `${filter.born_date} 23:59:59`] };
 
-                // Add logging to print the generated SQL query
                 return await Author.findAll({
                     where: whereCondition,
                     limit,
@@ -48,19 +47,29 @@ const resolvers = {
 
         book: async (_, { id }) => {
             try {
-                return await Book.findByPk(id, { include: Author });
+                if (!id) throw new Error("Book ID is required.");
+
+                const book = await Book.findByPk(id, { include: Author });
+
+                if (!book) throw new Error(`Book with ID ${id} not found.`);
+                return book;
             } catch (error) {
                 console.error("Error fetching book:", error);
-                throw new Error("Error fetching book");
+                throw new Error(error.message);
             }
         },
 
         author: async (_, { id }) => {
             try {
-                return await Author.findByPk(id, { include: Book });
+                if (!id) throw new Error("Author ID is required.");
+
+                const author = await Author.findByPk(id, { include: Book });
+                if (!author) throw new Error(`Author with ID ${id} not found.`);
+
+                return author;
             } catch (error) {
-                console.error("Error fetching author:", error);
-                throw new Error("Error fetching author");
+                console.error("Error fetching author:", error.message);
+                throw new Error(error.message);
             }
         },
     },
@@ -68,10 +77,16 @@ const resolvers = {
     Mutation: {
         addBook: async (_, { title, description, published_date, author_id }) => {
             try {
+                if (!title.trim()) throw new Error("Title is required.");
+                if (!author_id) throw new Error("Author ID is required.");
+
+                const authorExists = await Author.findByPk(author_id);
+                if (!authorExists) throw new Error(`Author with ID ${author_id} not found.`);
+
                 return await Book.create({ title, description, published_date, author_id });
             } catch (error) {
-                console.error("Error adding book:", error);
-                throw new Error("Error adding book");
+                console.error("Error adding book:", error.message);
+                throw new Error(error.message); // Return the actual error message
             }
         },
 
@@ -80,11 +95,17 @@ const resolvers = {
                 const book = await Book.findByPk(id);
                 if (!book) throw new Error("Book not found");
 
+                if (author_id) {
+                    const authorExists = await Author.findByPk(author_id);
+                    if (!authorExists) throw new Error("Author not found.");
+                }
+
                 await book.update({ title, description, published_date, author_id });
                 return book;
+
             } catch (error) {
                 console.error("Error updating book:", error);
-                throw new Error("Error updating book");
+                throw new Error(error.message);
             }
         },
 
@@ -97,19 +118,22 @@ const resolvers = {
                 return "Book deleted successfully";
             } catch (error) {
                 console.error("Error deleting book:", error);
-                throw new Error("Error deleting book");
+                throw new Error(error.message);
             }
         },
 
         addAuthor: async (_, { name, biography, born_date }) => {
             try {
-                console.log("Attempting to create author...");
-                const author = await Author.create({ name, biography, born_date });
-                console.log("Author created:", author);
-                return author;
+                if (!name) throw new Error("Author name is required.");
+                const existingAuthor = await Author.findOne({ where: { name, born_date } });
+                if (existingAuthor) {
+                    throw new Error("Author already exists with the same name and born_date.");
+                }
+
+                return await Author.create({ name, biography, born_date });
             } catch (error) {
                 console.error("Error adding author:", error);
-                throw new Error("Error adding author");
+                throw new Error(error.message);
             }
         },
 
@@ -123,7 +147,7 @@ const resolvers = {
                 return author;
             } catch (error) {
                 console.error("Error updating author:", error);
-                throw new Error("Error updating author");
+                throw new Error(error.message);
             }
         },
 
@@ -136,18 +160,25 @@ const resolvers = {
                 return "Author deleted successfully";
             } catch (error) {
                 console.error("Error deleting author:", error);
-                throw new Error("Error deleting author");
+                throw new Error(error.message);
             }
         },
 
         addReview: async (_, { book_id, user, rating, review }) => {
             try {
+                if (!book_id || !user || !rating || !review)
+                    throw new Error("Book ID, user, rating, and review are required.");
+
+                const bookExists = await Book.findByPk(book_id);
+                if (!bookExists) throw new Error("Book not found.");
+
                 const newReview = new Review({ book_id, user, rating, review, review_date: new Date() });
                 await newReview.save();
                 return newReview;
+
             } catch (error) {
                 console.error("Error adding review:", error);
-                throw new Error("Error adding review");
+                throw new Error(error.message);
             }
         },
     },

@@ -8,19 +8,23 @@ const resolvers = require('./graphql/resolvers');
 
 const app = express();
 const server = new ApolloServer({ typeDefs, resolvers });
+
 require('./models/associations');
 
 async function startServer() {
     await server.start();
     server.applyMiddleware({ app });
 
-    // Connect to databases
     await sequelize.sync();
     await connectMongoDB();
 
-    app.listen(process.env.PORT || 4000, () => {
+    const httpServer = app.listen(process.env.PORT || 4000, () => {
         console.log(`🚀 Server running at http://localhost:4000${server.graphqlPath}`);
     });
+
+    return httpServer;
 }
 
-startServer();
+const httpServerPromise = startServer();
+
+module.exports = { app, httpServerPromise };
