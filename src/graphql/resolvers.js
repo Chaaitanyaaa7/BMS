@@ -72,6 +72,35 @@ const resolvers = {
                 throw new Error(error.message);
             }
         },
+        booksCount: async () => {
+            try {
+                return await Book.count();
+            } catch (error) {
+                console.error("Error fetching books count:", error);
+                throw new Error("Error fetching books count");
+            }
+        },
+
+        authorsCount: async () => {
+            try {
+                return await Author.count();
+            } catch (error) {
+                console.error("Error fetching authors count:", error);
+                throw new Error("Error fetching authors count");
+            }
+        },
+        getallauthors: async () => {
+            try {
+                return await Author.findAll({
+                    attributes: ["id", "name", "biography", "born_date"],
+                });
+            } catch (error) {
+                console.error("Error fetching all authors:", error);
+                throw new Error("Error fetching all authors");
+            }
+        },
+
+
     },
 
     Mutation: {

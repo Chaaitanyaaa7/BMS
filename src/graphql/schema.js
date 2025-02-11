@@ -44,6 +44,9 @@ const typeDefs = gql`
     authors(limit: Int, offset: Int, filter: AuthorFilter): [Author]
     book(id: ID!): Book
     author(id: ID!): Author
+    booksCount: Int
+    authorsCount: Int
+    getallauthors: [Author]
   }
 
   type Mutation {
