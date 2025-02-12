@@ -16,6 +16,7 @@ const resolvers = {
                     where: whereCondition,
                     limit,
                     offset,
+                    order: [['id', 'ASC']],
                     include: Author,
                 });
             } catch (error) {
@@ -35,8 +36,8 @@ const resolvers = {
                     where: whereCondition,
                     limit,
                     offset,
+                    order: [['id', 'ASC']],
                     include: Book,
-                    logging: console.log,
                 });
             } catch (error) {
                 console.error("Error fetching authors:", error);
